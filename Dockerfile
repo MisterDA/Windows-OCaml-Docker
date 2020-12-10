@@ -4,7 +4,7 @@
 # Distributed under ISC, see terms at the end of this file.                                        #
 ####################################################################################################
 
-ARG WINDOWS_VERSION=1909
+ARG WINDOWS_VERSION=20H2
 
 FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION AS CygSymPathy
 
