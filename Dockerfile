@@ -56,6 +56,8 @@ COPY --from=Sources C:\winget-cli\vc_redist.x64.exe C:\Installers\
 COPY --from=Sources ["C:\\winget-cli\\AppInstallerCLI.exe", "C:\\Program Files\\winget-cli\\winget.exe"]
 COPY --from=Sources ["C:\\winget-cli\\resources.pri", "C:\\Program Files\\winget-cli\\"]
 
+SHELL ["cmd", "/S", "/C"]
+
 RUN C:\Installers\vc_redist.x64.exe /install /passive /norestart /log C:\Installers\vc_redist.log
 
 RUN for /f "tokens=1,2,*" %a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path ^| findstr /r "^[^H]"') do `
