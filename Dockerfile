@@ -61,7 +61,7 @@ RUN C:\Installers\vc_redist.x64.exe /install /passive /norestart /log C:\Install
 RUN for /f "tokens=1,2,*" %a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path ^| findstr /r "^[^H]"') do `
       reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path /t REG_EXPAND_SZ /f /d "%c;C:\Program Files\winget-cli"
 
-RUN winget install --silent git
+RUN winget install --silent git & echo [0m
 
 ADD https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz C:\Installers\
 
