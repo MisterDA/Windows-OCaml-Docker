@@ -70,6 +70,8 @@ RUN C:\cygwin64\bin\bash -lc "cd /home ; tar -xJf /cygdrive/c/Installers/opam64.
 ADD https://aka.ms/vs/16/release/vs_buildtools.exe C:\TEMP\vs_buildtools.exe
 
 # MS-recommended command
+# https://docs.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2019
+# https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
 #RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache `
 #    --installPath C:\BuildTools `
 #    --add Microsoft.VisualStudio.Workload.AzureBuildTools `
