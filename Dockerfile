@@ -4,7 +4,9 @@
 # Distributed under ISC, see terms at the end of this file.                                        #
 ####################################################################################################
 
-FROM mcr.microsoft.com/windows/nanoserver:1909 AS CygSymPathy
+ARG WINDOWS_VERSION=1909
+
+FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION AS CygSymPathy
 
 USER ContainerAdministrator
 
@@ -22,7 +24,7 @@ RUN mklink C:\cygwin64\etc\postinstall\zp_cygsympathy.sh C:\cygwin64\lib\cygsymp
 ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
 
 # Need servercore for PowerShell
-FROM mcr.microsoft.com/windows/servercore:1909 AS Sources
+FROM mcr.microsoft.com/windows/servercore:$WINDOWS_VERSION AS Sources
 
 ADD https://aka.ms/vs/16/release/vc_redist.x64.exe C:\winget-cli\
 ADD https://github.com/microsoft/winget-cli/releases/download/v.0.2.2521-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle C:\winget-cli\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip
@@ -32,9 +34,9 @@ RUN ren C:\winget-cli\AppInstaller_x64.appx AppInstaller_x64.zip
 RUN powershell -Command "Expand-Archive -LiteralPath C:\winget-cli\AppInstaller_x64.zip -DestinationPath C:\winget-cli\ -Force"
 
 # Cygwin can't install on nanoserver (graphical APIs?!)
-#FROM mcr.microsoft.com/windows/servercore:1909 AS Cygwin
+#FROM mcr.microsoft.com/windows/servercore:$WINDOWS_VERSION AS Cygwin
 # winget needs full-blown Windows image!
-FROM mcr.microsoft.com/windows:1909
+FROM mcr.microsoft.com/windows:$WINDOWS_VERSION
 
 # Swap these two around to see the reason for CygSymPathy
 COPY --from=CygSymPathy C:\cygwin64 C:\cygwin64
