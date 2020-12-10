@@ -1,0 +1,46 @@
+# escape=`
+ARG WINDOWS_VERSION=20H2
+ARG OCAML_VERSION=4.11.1
+ARG FLEXDLL_VERSION=0.39
+
+FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION
+SHELL ["cmd", "/S", "/C"]
+
+USER ContainerAdministrator
+
+# CygSymPathy
+RUN mkdir C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.cmd `
+        C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.sh `
+        C:\cygwin64\lib\cygsympathy\cygsympathy
+RUN mkdir C:\cygwin64\etc\postinstall\
+RUN mklink C:\cygwin64\etc\postinstall\zp_cygsympathy.sh C:\cygwin64\lib\cygsympathy\cygsympathy
+
+# Cygwin
+ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
+RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
+        --no-desktop --only-site --root C:\cygwin64 `
+        --site http://mirrors.kernel.org/sourceware/cygwin/ `
+        --local-package-dir C:\cygwin64\cache `
+        --packages make,diffutils,mingw64-i686-gcc-g++,mingw64-x86_64-gcc-g++,vim,git,curl,rsync,unzip,patch,m4
+
+SHELL ["C:\\cygwin64\\bin\\bash", "--login", "-c"]
+WORKDIR ["C:\\cygwin64\\tmp\\build"]
+
+# OCaml mingw-w64 port
+ADD https://github.com/ocaml/ocaml/archive/$OCAML_VERSION.tar.gz ocaml-$OCAML_VERSION.tar.gz
+ADD https://github.com/alainfrisch/flexdll/archive/$FLEXDLL_VERSION.tar.gz flexdll-$FLEXDLL_VERSION.tar.gz
+RUN tar -xf ocaml-$OCAML_VERSION.tar.gz && tar -C ocaml-$OCAML_VERSION/flexdll -xf flexdll-$FLEXDLL_VERSION.tar.gz --strip-components 1
+WORKDIR ocaml-$OCAML_VERSION
+RUN ./configure --prefix="/usr/local"
+RUN make -j$(nproc) flexdll
+RUN make -j$(nproc)
+RUN make -j$(nproc) flexdll.opt
+RUN make -j$(nproc) install
+
+# Cleanup
+WORKDIR /home
+RUN rm -rf /tmp/build
+
+ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]

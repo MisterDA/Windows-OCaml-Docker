@@ -1,0 +1,34 @@
+# escape=`
+ARG WINDOWS_VERSION=20H2
+
+FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION
+SHELL ["cmd", "/S", "/C"]
+
+USER ContainerAdministrator
+
+# CygSymPathy
+RUN mkdir C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.cmd `
+        C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.sh `
+        C:\cygwin64\lib\cygsympathy\cygsympathy
+RUN mkdir C:\cygwin64\etc\postinstall\
+RUN mklink C:\cygwin64\etc\postinstall\zp_cygsympathy.sh C:\cygwin64\lib\cygsympathy\cygsympathy
+
+# Cygwin
+ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
+RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
+        --no-desktop --only-site --root C:\cygwin64 `
+        --site http://mirrors.kernel.org/sourceware/cygwin/ `
+        --local-package-dir C:\cygwin64\cache `
+        --packages make,diffutils,mingw64-i686-gcc-g++,mingw64-x86_64-gcc-g++,vim,git,curl,rsync,unzip,patch,m4
+
+# OCaml for Windows
+ADD https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz C:\TEMP\
+RUN C:\cygwin64\bin\bash -lc "cd /home || exit; tar -xf /cygdrive/c/TEMP/opam64.tar.xz; ./opam64/install.sh"
+
+# Cleanup
+RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse" & `
+    powershell -Command "Remove-Item 'C:\cygwin64\cache' -Recurse"
+
+ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]

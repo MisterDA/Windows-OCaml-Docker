@@ -1,0 +1,42 @@
+# escape=`
+ARG WINDOWS_VERSION=20H2
+ARG OCAML_VERSION=4.11.1
+
+FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION
+SHELL ["cmd", "/S", "/C"]
+
+USER ContainerAdministrator
+
+# CygSymPathy
+RUN mkdir C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.cmd `
+        C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.sh `
+        C:\cygwin64\lib\cygsympathy\cygsympathy
+RUN mkdir C:\cygwin64\etc\postinstall\
+RUN mklink C:\cygwin64\etc\postinstall\zp_cygsympathy.sh C:\cygwin64\lib\cygsympathy\cygsympathy
+
+# Cygwin
+ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
+RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
+        --no-desktop --only-site --root C:\cygwin64 `
+        --site http://mirrors.kernel.org/sourceware/cygwin/ `
+        --local-package-dir C:\cygwin64\cache `
+        --packages make,diffutils,gcc-core,flexlink
+
+SHELL ["C:\\cygwin64\\bin\\bash", "--login", "-c"]
+WORKDIR ["C:\\cygwin64\\tmp\\build"]
+
+# OCaml mingw-w64 port
+ADD https://github.com/ocaml/ocaml/archive/$OCAML_VERSION.tar.gz ocaml-$OCAML_VERSION.tar.gz
+RUN tar -xf ocaml-$OCAML_VERSION.tar.gz
+WORKDIR ocaml-$OCAML_VERSION
+RUN ./configure --prefix="/usr/local"
+RUN make -j$(nproc)
+RUN make -j$(nproc) install
+
+# Cleanup
+WORKDIR /home
+RUN rm -rf /tmp/build /cache
+
+ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]

@@ -1,0 +1,74 @@
+# escape=`
+ARG WINDOWS_VERSION=20H2
+ARG OCAML_VERSION=4.11.1
+ARG FLEXDLL_VERSION=0.39
+ARG MSVS_TOOLS_VERSION=0.4.1
+
+FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION
+SHELL ["cmd", "/S", "/C"]
+
+USER ContainerAdministrator
+
+# CygSymPathy
+RUN mkdir C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.cmd `
+        C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.sh `
+        C:\cygwin64\lib\cygsympathy\cygsympathy
+RUN mkdir C:\cygwin64\etc\postinstall\
+RUN mklink C:\cygwin64\etc\postinstall\zp_cygsympathy.sh C:\cygwin64\lib\cygsympathy\cygsympathy
+
+# VC redist
+ADD https://aka.ms/vs/16/release/vc_redist.x86.exe C:\TEMP\
+RUN C:\TEMP\vc_redist.x86.exe /install /passive /norestart /log C:\TEMP\vc_redist.log
+
+# Microsoft Visual Studio Compiler
+# https://docs.microsoft.com/en-us/visualstudio/install/advanced-build-tools-container?view=vs-2019
+ADD https://raw.githubusercontent.com/MisterDA/Windows-OCaml-Docker/cygwin-wip/Install.cmd C:\TEMP\
+ADD https://aka.ms/vscollect.exe C:\TEMP\collect.exe
+ADD https://aka.ms/vs/16/release/channel C:\TEMP\VisualStudio.chman
+ADD https://aka.ms/vs/16/release/vs_buildtools.exe C:\TEMP\vs_buildtools.exe
+RUN C:\TEMP\Install.cmd C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache `
+        --installPath C:\BuildTools `
+        --channelUri C:\TEMP\VisualStudio.chman `
+        --installChannelUri C:\TEMP\VisualStudio.chman `
+        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+        --add Microsoft.VisualStudio.Component.Windows10SDK.18362
+
+# Cleanup
+RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse"
+
+# Cygwin
+ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
+RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
+        --no-desktop --only-site --root C:\cygwin64 `
+        --site http://mirrors.kernel.org/sourceware/cygwin/ `
+        --local-package-dir C:\cygwin64\cache `
+        --packages make,diffutils
+
+SHELL ["C:\\cygwin64\\bin\\bash", "--login", "-c"]
+WORKDIR ["C:\\cygwin64\\tmp\\build"]
+
+# MSVS Tools
+ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
+RUN tar -xf msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
+RUN eval "$("./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-detect" --arch=x86 --output=shell)" && `
+    env PATH="$PATH:$MSVS_PATH" eval  "./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-promote-path" && `
+    printf "PATH=%s; export PATH\nMSVS_NAME=%s; export MSVS_NAME\nMSVS_PATH=%s; export MSVS_PATH\nMSVS_INC=%s; export MSVS_INC=%s\nMSVS_LIB=%s; export MSVS_LIB\n" "$PATH" "$MSVS_NAME" "$MSVS_PATH" "$MSVS_INC" "$MSVS_LIB" > /etc/profile.d/msvs-tools.sh
+
+# OCaml MSVC 32 port
+ADD https://github.com/ocaml/ocaml/archive/$OCAML_VERSION.tar.gz ocaml-$OCAML_VERSION.tar.gz
+ADD https://github.com/alainfrisch/flexdll/archive/$FLEXDLL_VERSION.tar.gz flexdll-$FLEXDLL_VERSION.tar.gz
+RUN tar -xf ocaml-$OCAML_VERSION.tar.gz && tar -C ocaml-$OCAML_VERSION/flexdll -xf flexdll-$FLEXDLL_VERSION.tar.gz --strip-components 1
+WORKDIR ocaml-$OCAML_VERSION
+RUN ./configure --build=i686-pc-cygwin --host=i686-pc-windows
+RUN make -j$(nproc) flexdll
+RUN make -j$(nproc)
+RUN make -j$(nproc) flexdll.opt
+RUN make -j$(nproc) install
+
+# Cleanup
+WORKDIR /home
+RUN rm -rf /tmp/build
+
+ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]
