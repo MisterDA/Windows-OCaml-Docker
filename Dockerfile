@@ -27,7 +27,7 @@ ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
 FROM mcr.microsoft.com/windows/servercore:$WINDOWS_VERSION AS Sources
 
 ADD https://aka.ms/vs/16/release/vc_redist.x64.exe C:\winget-cli\
-ADD https://github.com/microsoft/winget-cli/releases/download/v.0.2.2521-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle C:\winget-cli\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip
+ADD https://github.com/microsoft/winget-cli/releases/download/v0.2.3162-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle C:\winget-cli\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip
 
 RUN powershell -Command "Expand-Archive -LiteralPath C:\winget-cli\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip -DestinationPath C:\winget-cli\ -Force"
 RUN ren C:\winget-cli\AppInstaller_x64.appx AppInstaller_x64.zip
