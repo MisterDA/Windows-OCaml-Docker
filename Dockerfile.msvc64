@@ -53,7 +53,7 @@ WORKDIR ["C:\\cygwin64\\tmp\\build"]
 ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
 RUN tar -xf msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
 RUN eval "$("./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-detect" --arch=x64 --output=shell)" && `
-    env PATH="$PATH:$MSVS_PATH" eval  "./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-promote-path" && `
+    env PATH="$PATH:$MSVS_PATH" eval "./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-promote-path" && `
     printf "PATH=%s; export PATH\nMSVS_NAME=%s; export MSVS_NAME\nMSVS_PATH=%s; export MSVS_PATH\nMSVS_INC=%s; export MSVS_INC=%s\nMSVS_LIB=%s; export MSVS_LIB\n" "$PATH" "$MSVS_NAME" "$MSVS_PATH" "$MSVS_INC" "$MSVS_LIB" > /etc/profile.d/msvs-tools.sh
 
 # OCaml MSVC 64 port

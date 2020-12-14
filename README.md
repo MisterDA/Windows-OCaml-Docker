@@ -1,5 +1,8 @@
 # Dockerfiles for OCaml on Windows
 
+The images are based on servercore, as the Cygwin installer requires
+at least servercore.
+
 - `Dockerfile.full`: a fully-fledged image of OCaml that contains:
   + CygSymPathy;
   + Cygwin;
@@ -48,4 +51,3 @@
   + Cygwin;
   + MSVC32;
   + OCaml MSVC 32 port.
-

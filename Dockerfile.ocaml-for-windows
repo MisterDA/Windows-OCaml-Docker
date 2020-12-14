@@ -1,5 +1,6 @@
 # escape=`
 ARG WINDOWS_VERSION=20H2
+ARG OCAML_VERSION=4.11.1
 
 FROM mcr.microsoft.com/windows/servercore:$WINDOWS_VERSION
 SHELL ["cmd", "/S", "/C"]
@@ -23,12 +24,19 @@ RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
         --local-package-dir C:\cygwin64\cache `
         --packages make,diffutils,mingw64-x86_64-gcc-g++,vim,git,curl,rsync,unzip,patch,m4
 
+SHELL ["C:\\cygwin64\\bin\\bash.exe", "--login", "-c"]
+WORKDIR ["C:\\cygwin64\\tmp\\build"]
+
 # OCaml for Windows
-ADD https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz C:\TEMP\
-RUN C:\cygwin64\bin\bash -lc "cd /home || exit; tar -xf /cygdrive/c/TEMP/opam64.tar.xz; ./opam64/install.sh"
+ADD https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz opam64.tar.xz
+RUN tar -xf opam64.tar.xz && ./opam64/install.sh --prefix=/usr
+RUN env MAKEFLAGS=-j$(nproc) opam init default "https://github.com/fdopen/opam-repository-mingw.git#opam2" -c "ocaml-variants.$OCAML_VERSION+mingw64" --disable-sandboxing
+RUN ocaml-env cygwin > /etc/profile.d/ocaml-env_cygwin.sh
+RUN opam install depext depext-cygwinports
 
 # Cleanup
-RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse" & `
-    powershell -Command "Remove-Item 'C:\cygwin64\cache' -Recurse"
+WORKDIR /
+RUN powershell -Command "Remove-Item 'C:\cygwin64\cache' -Recurse"
+RUN rm -rm /tmp/build
 
 ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]
