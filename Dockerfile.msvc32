@@ -4,7 +4,7 @@ ARG OCAML_VERSION=4.11.1
 ARG FLEXDLL_VERSION=0.39
 ARG MSVS_TOOLS_VERSION=0.4.1
 
-FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION
+FROM mcr.microsoft.com/windows/servercore:$WINDOWS_VERSION
 SHELL ["cmd", "/S", "/C"]
 
 USER ContainerAdministrator
