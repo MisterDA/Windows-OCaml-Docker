@@ -46,29 +46,22 @@ RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
         --local-package-dir C:\cygwin64\cache `
         --packages make,diffutils
 
-SHELL ["C:\\cygwin64\\bin\\bash", "--login", "-c"]
-WORKDIR ["C:\\cygwin64\\tmp\\build"]
-
 # MSVS Tools
-ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
-RUN tar -xf msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
-RUN eval "$("./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-detect" --arch=x64 --output=shell)" && `
-    env PATH="$PATH:$MSVS_PATH" eval "./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-promote-path" && `
-    printf "PATH=%s; export PATH\nMSVS_NAME=%s; export MSVS_NAME\nMSVS_PATH=%s; export MSVS_PATH\nMSVS_INC=%s; export MSVS_INC=%s\nMSVS_LIB=%s; export MSVS_LIB\n" "$PATH" "$MSVS_NAME" "$MSVS_PATH" "$MSVS_INC" "$MSVS_LIB" > /etc/profile.d/msvs-tools.sh
+ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz C:\cygwin64\tmp\build\msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build && tar -xf msvs-tools-$MSVS_TOOLS_VERSION.tar.gz'
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build && eval "$("./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-detect" --arch=x64 --output=shell)" && env PATH="$PATH:$MSVS_PATH" eval  "./msvs-tools-${MSVS_TOOLS_VERSION}/msvs-promote-path" && printf "PATH=%s; export PATH\nMSVS_NAME=%s; export MSVS_NAME\nMSVS_PATH=%s; export MSVS_PATH\nMSVS_INC=%s; export MSVS_INC=%s\nMSVS_LIB=%s; export MSVS_LIB\n" "$PATH" "$MSVS_NAME" "$MSVS_PATH" "$MSVS_INC" "$MSVS_LIB" > /etc/profile.d/msvs-tools.sh'
 
-# OCaml MSVC 64 port
-ADD https://github.com/ocaml/ocaml/archive/$OCAML_VERSION.tar.gz ocaml-$OCAML_VERSION.tar.gz
-ADD https://github.com/alainfrisch/flexdll/archive/$FLEXDLL_VERSION.tar.gz flexdll-$FLEXDLL_VERSION.tar.gz
-RUN tar -xf ocaml-$OCAML_VERSION.tar.gz && tar -C ocaml-$OCAML_VERSION/flexdll -xf flexdll-$FLEXDLL_VERSION.tar.gz --strip-components 1
-WORKDIR ocaml-$OCAML_VERSION
-RUN ./configure --build=x86_64-unknown-cygwin --host=x86_64-pc-windows
-RUN make -j$(nproc) flexdll
-RUN make -j$(nproc)
-RUN make -j$(nproc) flexdll.opt
-RUN make -j$(nproc) install
+# OCaml MSVC 32 port
+ADD https://github.com/ocaml/ocaml/archive/$OCAML_VERSION.tar.gz C:\cygwin64\tmp\build\ocaml-$OCAML_VERSION.tar.gz
+ADD https://github.com/alainfrisch/flexdll/archive/$FLEXDLL_VERSION.tar.gz C:\cygwin64\tmp\build\flexdll-$FLEXDLL_VERSION.tar.gz
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build && tar -xf ocaml-$OCAML_VERSION.tar.gz && tar -C ocaml-$OCAML_VERSION/flexdll -xf flexdll-$FLEXDLL_VERSION.tar.gz --strip-components 1'
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build/ocaml-$OCAML_VERSION && ./configure --prefix=/usr --build=x86_64-pc-cygwin --host=i686-pc-windows'
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build/ocaml-$OCAML_VERSION && make -j$(nproc) flexdll'
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build/ocaml-$OCAML_VERSION && make -j$(nproc)'
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build/ocaml-$OCAML_VERSION && make -j$(nproc) flexdll.opt'
+RUN C:\cygwin64\bin\bash.exe -lc 'cd /tmp/build/ocaml-$OCAML_VERSION && make -j$(nproc) install'
 
 # Cleanup
-WORKDIR /home
-RUN rm -rf /tmp/build
+RUN C:\cygwin64\bin\bash.exe -lc 'rm -rf /cache /tmp/build'
 
-ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]
+ENTRYPOINT ["cmd

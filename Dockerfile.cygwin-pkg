@@ -24,6 +24,6 @@ RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
         --packages gcc-core,flexlink,ocaml
 
 # Cleanup
-RUN rm -rf /cache
+RUN C:\cygwin64\bin\bash.exe -lc 'rm -rf /cache'
 
 ENTRYPOINT ["C:\\cygwin64\\Cygwin.bat"]

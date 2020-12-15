@@ -1,53 +1,52 @@
 # Dockerfiles for OCaml on Windows
 
 The images are based on servercore, as the Cygwin installer requires
-at least servercore.
+at least servercore. Only Windows 10.
 
 - `Dockerfile.full`: a fully-fledged image of OCaml that contains:
   + CygSymPathy;
   + Cygwin;
   + OCaml for Windows (fdopen's fork of the OCaml mingw-w64 port),
     includes a working Opam environment;
-  + MSVC64;
-  + winget;
-  + Git for Windows.
+  + MSVC;
+  + Git for Windows;
+  + winget for external dependencies;
+  + x86_64.
 
-  The entrypoint is a powershell prompt. The environment must be
-  configured for the compiler of your desire.
 - `Dockerfile.ocaml-for-windows`: an image containing OCaml for Windows
   + CygSymPathy;
   + Cygwin;
   + OCaml for Windows (fdopen's fork of the OCaml mingw-w64 port),
-    includes a working Opam environment.
+    includes a working Opam environment;
+  + Cygwin for external dependencies;
+  + x86, x86_64.
 
-  The entrypoint is Bash with the correct environment.
 - `Dockerfile.mingw-w64`: an image containing the OCaml mingw-w64 port
   + CygSymPathy;
   + Cygwin;
-  + OCaml mingw-w64 port.
+  + OCaml mingw-w64 port;
+  + Cygwin for external dependencies;
+  + x86, x86_64.
 
-  The entrypoint is Cygwin Bash with the correct environment.
 - `Dockerfile.cygwin-port`: an image containing the OCaml Cygwin port
   + CygSymPathy;
   + Cygwin;
-  + OCaml Cygwin port.
+  + OCaml Cygwin port;
+  + Cygwin for external dependencies;
+  + x86_64.
 
-  The entrypoint is Cygwin Bash with the correct environment.
 - `Dockerfile.cygwin-pkg`: an image containing a Cygwin install with
   the Cygwin OCaml package
   + CygSymPathy;
   + Cygwin;
-  + OCaml Cygwin package.
+  + OCaml Cygwin package;
+  + Cygwin for external dependencies;
+  + x86_64.
 
-  The entrypoint is Cygwin Bash with the correct environment.
-- `Dockerfile.msvc64`: an image containing the OCaml MSVC 64 port
+- `Dockerfile.msvc`: an image containing the OCaml MSVC 64 port
   + CygSymPathy;
   + Cygwin;
-  + MSVC64;
-  + OCaml MSVC 64 port.
-
-- `Dockerfile.msvc32`: an image containing the OCaml MSVC 32 port
-  + CygSymPathy;
-  + Cygwin;
-  + MSVC32;
-  + OCaml MSVC 32 port.
+  + MSVC;
+  + OCaml MSVC port;
+  + winget for external dependencies;
+  + aarch64, x86, x86_64.
