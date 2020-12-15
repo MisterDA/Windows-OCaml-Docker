@@ -1,9 +1,9 @@
 # Dockerfiles for OCaml on Windows
 
 The images are based on servercore, as the Cygwin installer requires
-at least servercore. Only Windows 10.
+at least servercore. Only Windows 20H2.
 
-- `Dockerfile.full`: a fully-fledged image of OCaml that contains:
+- `Dockerfile`: a fully-fledged image of OCaml that contains:
   + CygSymPathy;
   + Cygwin;
   + OCaml for Windows (fdopen's fork of the OCaml mingw-w64 port),
@@ -11,42 +11,58 @@ at least servercore. Only Windows 10.
   + MSVC;
   + Git for Windows;
   + winget for external dependencies;
+  + MSVS Tools;
   + x86_64.
 
-- `Dockerfile.ocaml-for-windows`: an image containing OCaml for Windows
-  + CygSymPathy;
-  + Cygwin;
-  + OCaml for Windows (fdopen's fork of the OCaml mingw-w64 port),
-    includes a working Opam environment;
-  + Cygwin for external dependencies;
-  + x86, x86_64.
+## Environments
 
-- `Dockerfile.mingw-w64`: an image containing the OCaml mingw-w64 port
-  + CygSymPathy;
-  + Cygwin;
-  + OCaml mingw-w64 port;
-  + Cygwin for external dependencies;
-  + x86, x86_64.
+The entrypoint is a Windows CMD.
 
-- `Dockerfile.cygwin-port`: an image containing the OCaml Cygwin port
-  + CygSymPathy;
-  + Cygwin;
-  + OCaml Cygwin port;
-  + Cygwin for external dependencies;
-  + x86_64.
+- Cygwin
 
-- `Dockerfile.cygwin-pkg`: an image containing a Cygwin install with
-  the Cygwin OCaml package
-  + CygSymPathy;
-  + Cygwin;
-  + OCaml Cygwin package;
-  + Cygwin for external dependencies;
-  + x86_64.
+  ``` cmd
+  # Interactive
+  C:\> C:\cygwin64\Cygwin.bat
 
-- `Dockerfile.msvc`: an image containing the OCaml MSVC 64 port
-  + CygSymPathy;
-  + Cygwin;
-  + MSVC;
-  + OCaml MSVC port;
-  + winget for external dependencies;
-  + aarch64, x86, x86_64.
+  # Non-interactive
+  C:\cygwin64\bin\bash.exe -lc 'my command'
+  ```
+
+- OCaml for Window:
+
+  1. Load the Cygwin environment.
+
+  2. Load the Opam environment.
+
+     ``` sh
+     eval $(opam-env config)
+     ```
+
+- MSVC from Cygwin
+
+  1. Load the Cygwin environment.
+
+  2. Use `msvs-detect` ([documentation](https://github.com/metastack/msvs-tools)) to load MSVC.
+
+     ``` sh
+     eval $(msvs-detect --arch=x64)
+     ```
+
+  3. Run `msvs-promote-path`.
+
+     ``` sh
+     eval $(msvs-promote-path)
+     ```
+
+- MSVC from Windows
+
+  ``` cmd
+  C:\BuildTools\Common7\Tools\VsDevCmd.bat
+  ```
+
+- Powershell
+
+  ``` cmd
+  @rem Interactive
+  C:\> powershell.exe -NoLogo -ExecutionPolicy Bypass
+  ```
