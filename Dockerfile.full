@@ -29,14 +29,17 @@ RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
         --packages make,diffutils,mingw64-i686-gcc-g++,mingw64-x86_64-gcc-g++,vim,git,curl,rsync,unzip,patch,m4
 
 # OCaml for Windows
+ARG OCAMLFORWINDOWS_VERSION
 ADD https://github.com/fdopen/opam-repository-mingw/releases/download/$OCAMLFORWINDOWS_VERSION/opam64.tar.xz C:\TEMP\
 RUN C:\cygwin64\bin\bash -lc "cd /home && tar -xf /cygdrive/c/TEMP/opam64.tar.xz && ./opam64/install.sh --prefix=/usr && rm -rf opam64 opam64.tar.xz"
 
 # VC redist
+ARG VS_VERSION
 ADD https://aka.ms/vs/$VS_VERSION/release/vc_redist.x64.exe C:\TEMP\
 RUN C:\TEMP\vc_redist.x64.exe /install /passive /norestart /log C:\TEMP\vc_redist.log
 
 # winget-cli
+ARG WINGET_VERSION
 ADD https://github.com/microsoft/winget-cli/releases/download/$WINGET_VERSION/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle C:\TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip
 RUN powershell -Command "Expand-Archive -LiteralPath C:\TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip -DestinationPath C:\TEMP\winget-cli\ -Force" & `
     ren C:\TEMP\winget-cli\AppInstaller_x64.appx AppInstaller_x64.zip & `
@@ -53,6 +56,8 @@ RUN winget install --silent git & echo [0m
 
 # Microsoft Visual Studio Compiler
 # https://docs.microsoft.com/en-us/visualstudio/install/advanced-build-tools-container?view=vs-2019
+ARG VS_VERSION
+ARG WINDOWS10SDK_VERSION
 ADD https://raw.githubusercontent.com/MisterDA/Windows-OCaml-Docker/cygwin-wip/Install.cmd C:\TEMP\
 ADD https://aka.ms/vscollect.exe C:\TEMP\collect.exe
 ADD https://aka.ms/vs/$VS_VERSION/release/channel C:\TEMP\VisualStudio.chman
@@ -65,12 +70,12 @@ RUN C:\TEMP\Install.cmd C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --n
     --add Microsoft.VisualStudio.Component.Windows10SDK.$WINDOWS10SKD_VERSION
 
 # MSVS Tools
-ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz C:\TEMP\$MSVS_TOOLS_VERSION.tar.gz
+ARG MSVS_TOOLS_VERSION
+ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz C:\TEMP\msvs-tools-$MSVS_TOOLS_VERSION.tar.gz
 RUN C:\cygwin64\bin\bash.exe -lc "cd /home && tar -xf /cygdrive/c/TEMP/msvs-tools-$MSVS_TOOLS_VERSION.tar.gz && cp msvs-tools-$MSVS_TOOLS_VERSION/msvs-detect msvs-tools-$MSVS_TOOLS_VERSION/msvs-promote-path /usr/bin && rm -rf msvs-tools-$MSVS_TOOLS_VERSION"
 
 # Cleanup
 RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse" & `
     powershell -Command "Remove-Item 'C:\cygwin64\cache' -Recurse"
 
-ENTRYPOINT ["C:\\BuildTools\\Common7\\Tools\\VsDevCmd.bat", "&&", "powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass"]
-        
+ENTRYPOINT ["cmd"]
