@@ -26,7 +26,7 @@ RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
         --no-desktop --only-site --root C:\cygwin64 `
         --site http://mirrors.kernel.org/sourceware/cygwin/ `
         --local-package-dir C:\cygwin64\cache `
-        --packages make,diffutils,mingw64-i686-gcc-g++,mingw64-x86_64-gcc-g++,vim,git,curl,rsync,unzip,patch,m4
+        --packages make,diffutils,mingw64-i686-gcc-g++,mingw64-x86_64-gcc-g++,gcc-g++,vim,git,curl,rsync,unzip,patch,m4
 
 # OCaml for Windows
 ARG OCAMLFORWINDOWS_VERSION
