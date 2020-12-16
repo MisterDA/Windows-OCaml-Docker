@@ -1,0 +1,40 @@
+# escape=`
+ARG WINDOWS_VERSION=20H2
+
+FROM mcr.microsoft.com/windows/servercore:$WINDOWS_VERSION as base
+SHELL ["cmd", "/S", "/C"]
+USER ContainerAdministrator
+
+# CygSymPathy
+RUN mkdir C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.cmd `
+        C:\cygwin64\lib\cygsympathy\
+ADD https://raw.githubusercontent.com/MisterDA/cygsympathy/script/cygsympathy.sh `
+        C:\cygwin64\lib\cygsympathy\cygsympathy
+RUN mkdir C:\cygwin64\etc\postinstall\
+RUN mklink C:\cygwin64\etc\postinstall\zp_cygsympathy.sh C:\cygwin64\lib\cygsympathy\cygsympathy
+
+# Cygwin
+ADD https://www.cygwin.com/setup-x86_64.exe C:\cygwin64\
+RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
+        --no-desktop --only-site --root C:\cygwin64 `
+        --site http://mirrors.kernel.org/sourceware/cygwin/ `
+        --local-package-dir C:\cygwin64\cache `
+        --packages make,diffutils
+RUN C:\cygwin64\bin\bash.exe -lc 'rm -rf /cache'
+
+
+FROM mcr.microsoft.com/windows/nanoserver:$WINDOWS_VERSION as cygwin
+SHELL ["cmd", "/S", "/C"]
+USER ContainerAdministrator
+COPY --from=base C:\cywgin64 C:\cygwin64
+
+
+FROM cygwin as cygwin-full
+
+RUN C:\cygwin64\setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu `
+        --no-desktop --only-site --root C:\cygwin64 `
+        --site http://mirrors.kernel.org/sourceware/cygwin/ `
+        --local-package-dir C:\cygwin64\cache `
+        --packages mingw64-i686-gcc-g++,mingw64-x86_64-gcc-g++,gcc-g++,vim,git,curl,rsync,unzip,patch,m4
+RUN C:\cygwin64\bin\bash.exe -lc 'rm -rf /cache'
