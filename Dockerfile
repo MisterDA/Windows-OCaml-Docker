@@ -41,18 +41,18 @@ RUN C:\TEMP\vc_redist.x64.exe /install /passive /norestart /log C:\TEMP\vc_redis
 # winget-cli
 ARG WINGET_VERSION
 ADD https://github.com/microsoft/winget-cli/releases/download/$WINGET_VERSION/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.appxbundle C:\TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip
-RUN powershell -Command "Expand-Archive -LiteralPath C:\TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip -DestinationPath C:\TEMP\winget-cli\ -Force" & `
-    ren C:\TEMP\winget-cli\AppInstaller_x64.appx AppInstaller_x64.zip & `
+RUN powershell -Command "Expand-Archive -LiteralPath C:\TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.zip -DestinationPath C:\TEMP\winget-cli\ -Force" && `
+    ren C:\TEMP\winget-cli\AppInstaller_x64.appx AppInstaller_x64.zip && `
     powershell -Command "Expand-Archive -LiteralPath C:\TEMP\winget-cli\AppInstaller_x64.zip -DestinationPath C:\TEMP\winget-cli\ -Force"
-RUN mkdir "C:\Program Files\winget-cli" & `
-    move "C:\TEMP\winget-cli\AppInstallerCLI.exe" "C:\Program Files\winget-cli\winget.exe" & `
+RUN mkdir "C:\Program Files\winget-cli" && `
+    move "C:\TEMP\winget-cli\AppInstallerCLI.exe" "C:\Program Files\winget-cli\winget.exe" && `
     move "C:\TEMP\winget-cli\resources.pri" "C:\Program Files\winget-cli"
 
 RUN for /f "tokens=1,2,*" %a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path ^| findstr /r "^[^H]"') do `
         reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path /t REG_EXPAND_SZ /f /d "%c;C:\Program Files\winget-cli"
 
 # Git for Windows
-RUN winget install --silent git & echo [0m
+RUN winget install --silent git && echo [0m
 
 # Microsoft Visual Studio Compiler
 # https://docs.microsoft.com/en-us/visualstudio/install/advanced-build-tools-container?view=vs-2019
@@ -75,7 +75,6 @@ ADD https://github.com/metastack/msvs-tools/archive/$MSVS_TOOLS_VERSION.tar.gz C
 RUN C:\cygwin64\bin\bash.exe -lc "cd /home && tar -xf /cygdrive/c/TEMP/msvs-tools-$MSVS_TOOLS_VERSION.tar.gz && cp msvs-tools-$MSVS_TOOLS_VERSION/msvs-detect msvs-tools-$MSVS_TOOLS_VERSION/msvs-promote-path /usr/bin && rm -rf msvs-tools-$MSVS_TOOLS_VERSION"
 
 # Cleanup
-RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse" & `
-    powershell -Command "Remove-Item 'C:\cygwin64\cache' -Recurse"
+RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse && Remove-Item 'C:\cygwin64\cache' -Recurse"
 
 ENTRYPOINT ["cmd"]
