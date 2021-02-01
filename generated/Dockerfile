@@ -56,15 +56,14 @@ RUN C:\cygwin-setup-x86_64.exe --quiet-mode --no-shortcuts --no-startmenu --no-d
         --root C:\cygwin64 --site http://mirrors.kernel.org/sourceware/cygwin/ --local-package-dir C:\TEMP\cache `
         --packages curl,diffutils,flexdll,gcc-core,git,m4,make,mingw64-x86_64-gcc-core,mingw64-x86_64-gcc-g++,ocaml,patch,rsync,unzip,vim
 ADD [ "https://github.com/metastack/msvs-tools/archive/0.4.1.tar.gz", "C:\\TEMP\\msvs-tools.tar.gz" ]
-RUN C:\cygwin64\bin\bash.exe --login -c "cd /tmp && tar -xf /cygdrive/c/TEMP/msvs-tools.tar.gz && cp msvs-tools-0.4.1/msvs-detect msvs-tools-0.4.1/msvs-promote-path /usr/bin"
+RUN C:\cygwin64\bin\bash.exe --login -c "cd /tmp && tar -xf /cygdrive/c/TEMP/msvs-tools.tar.gz && cp msvs-tools-0.4.1/msvs-detect msvs-tools-0.4.1/msvs-promote-path /bin"
 RUN for /f "tokens=1,2,*" %a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path ^| findstr /r "^[^H]"') do `
-       reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path /t REG_EXPAND_SZ /f /d "%c;C:\cygwin64\usr\local\bin;C:\cygwin64\usr\bin"
+       reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /V Path /t REG_EXPAND_SZ /f /d "%c;C:\cygwin64\bin"
 WORKDIR C:\cygwin64\home\opam
 ADD [ "https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz", "C:\\TEMP\\" ]
 RUN C:\cygwin64\bin\bash.exe --login -c "cd /tmp && tar -xf /cygdrive/c/TEMP/opam64.tar.xz && ./opam64/install.sh --prefix=/usr && rm -rf opam64 opam64.tar.xz"
 RUN powershell -Command "Remove-Item 'C:\TEMP' -Recurse"
-COPY [ ".", "/home/opam/opam-repository" ]
-RUN opam init -k local -a /home/opam/opam-repository --bare --disable-sandboxing
-RUN rm -rf .opam/repo/default/.git
+COPY [ ".", "C:\\cygwin64\\home\\opam\\opam-repository" ]
+RUN opam init -k local -a "C:\cygwin64\home\opam\opam-repository" --bare --disable-sandboxing
+RUN C:\cygwin64\bin\bash.exe --login -c "rm -rf /home/opam/.opam/repo/default/.git"
 COPY [ "Dockerfile", "/Dockerfile.opam" ]
-
